@@ -1,4 +1,4 @@
-新建一个对象池类继承SingletonObjectPool后，在UnityEditor中会自动创建以类名为名称的单例实例。
+新建一个对象池类继承<code>SingletonObjectPool<T></code>后，在UnityEditor中会自动创建以类名为名称的单例实例。
 ```csharp
 public class EnemyPool : SingletonObjectPool<Enemy>
 {
