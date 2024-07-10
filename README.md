@@ -66,7 +66,7 @@ public class EnemySpawner : MonoBehaviour
     {
         for (var i = 0; i < spawnCount; i++)
         {
-            var spawnPosition = transform.position + (Vector3)Random.insideUnitCircle \* spawnRadius;
+            var spawnPosition = transform.position + (Vector3)Random.insideUnitCircle * spawnRadius;
             SingletonObjectPool<Enemy>.Instance.Spawn(transform).transform.position = spawnPosition;
         }
     }
