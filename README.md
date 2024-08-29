@@ -11,7 +11,7 @@ Github: https://github.com/CrashWork-Dev/AnnoyingUtils
 
 目前拥有键盘键位自定义、自定义相机比例、对象池功能。
 
-如果你有更好的解决方案或者有功能需求，欢迎你在[评论区](https://forum.crash.work/d/38)或[Github Issues](https://github.com/CrashWork-Dev/AnnoyingUtils/issues)留言。
+如果你有更好的解决方案或者有功能需求，欢迎你在[评论区](https://forum.crash.work/d/54)或[Github Issues](https://github.com/CrashWork-Dev/AnnoyingUtils/issues)留言。
 
 ###  键盘键位自定义
 `KeySettingManager`为单例类
