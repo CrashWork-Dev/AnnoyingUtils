@@ -8,43 +8,52 @@ namespace AnnoyingUtils.KeyboardInput
 {
     public class KeySettingManager : MonoBehaviour
     {
+        // 存储所有键位映射
         public List<KeyMapping> keyMappings = new();
+        // 文件路径，用于保存和加载键位设置
         public string filePath;
 
+        // 单例模式
         private static KeySettingManager _instance;
-        
+
+        // 获取或创建KeySettingManager的单例实例
         public static KeySettingManager Instance
         {
             get
             {
-                if (_instance) return _instance;
+                if (_instance != null) return _instance;
+                
                 _instance = FindObjectOfType<KeySettingManager>();
-                if (_instance) return _instance;
-                var go = new GameObject(nameof(KeySettingManager));
-                _instance = go.AddComponent<KeySettingManager>();
-
+                if (_instance == null)
+                {
+                    var go = new GameObject(nameof(KeySettingManager));
+                    _instance = go.AddComponent<KeySettingManager>();
+                }
+                
                 return _instance;
             }
         }
 
+        // 当前的方向
         public Vector2 Direction { get; private set; }
 
+        // 初始化，确保只有一个实例并加载键位设置
         private void Awake()
         {
-            if (_instance is not null && _instance != this)
+            if (_instance != null && _instance != this)
             {
                 Destroy(gameObject);
             }
             else
             {
                 _instance = this;
+                DontDestroyOnLoad(gameObject);  // 保证对象不会在场景切换时被销毁
+                filePath = Path.Combine(Application.persistentDataPath, "KeySetting.json");
+                LoadKeySettings();  // 加载键位设置
             }
-            DontDestroyOnLoad(gameObject);
-            filePath = Application.persistentDataPath + "/" + "KeySetting.json";
-            LoadKeySettings();
         }
 
-        //加载键位设置
+        // 加载键位设置，如果不存在则创建默认配置
         private void LoadKeySettings()
         {
             if (File.Exists(filePath))
@@ -54,84 +63,60 @@ namespace AnnoyingUtils.KeyboardInput
             }
             else
             {
-                //如果文件不存在，则创建默认键位设置
-                keyMappings.Add(new KeyMapping("Attack", KeyCode.J));
-                keyMappings.Add(new KeyMapping("Left", KeyCode.A));
-                keyMappings.Add(new KeyMapping("Right", KeyCode.D));
-                keyMappings.Add(new KeyMapping("Up", KeyCode.W));
-                keyMappings.Add(new KeyMapping("Down", KeyCode.S));
-                SaveKeySettings();
+                // 创建默认键位设置
+                keyMappings = new List<KeyMapping>
+                {
+                    new KeyMapping("Attack", KeyCode.J),
+                    new KeyMapping("Left", KeyCode.A),
+                    new KeyMapping("Right", KeyCode.D),
+                    new KeyMapping("Up", KeyCode.W),
+                    new KeyMapping("Down", KeyCode.S)
+                };
+                SaveKeySettings();  // 保存默认设置
             }
         }
 
-        //保存键位设置
+        // 保存键位设置到文件
         private void SaveKeySettings()
         {
             var json = JsonConvert.SerializeObject(keyMappings, Formatting.Indented);
             File.WriteAllText(filePath, json);
         }
 
-        //获取键位
+        // 根据动作名获取对应的键位
         public KeyCode GetKey(string actionName)
         {
-            return (from mapping in keyMappings where mapping.actionName == actionName select mapping.keyCode)
-                .FirstOrDefault();
+            return keyMappings.FirstOrDefault(mapping => mapping.actionName == actionName)?.keyCode ?? KeyCode.None;
         }
 
-        //设置键位
+        // 更新指定动作的键位并保存
         public void SetKey(string actionName, KeyCode newKeyCode)
         {
-            foreach (var mapping in keyMappings.Where(mapping => mapping.actionName == actionName))
+            var mapping = keyMappings.FirstOrDefault(m => m.actionName == actionName);
+            if (mapping != null)
             {
                 mapping.keyCode = newKeyCode;
-                break;
+                SaveKeySettings();  // 保存更新后的设置
             }
-
-            SaveKeySettings();
         }
-        
-        //更新Direction
+
+        // 每帧更新方向，基于键盘输入
         private void Update()
         {
-            if (Input.GetKey(GetKey("Left")))
-            {
-                Direction = new Vector2(-1, Direction.y);
-            }
+            float horizontal = 0;
+            float vertical = 0;
 
-            if (Input.GetKey(GetKey("Right")))
-            {
-                Direction = new Vector2(1, Direction.y);
-            }
+            if (Input.GetKey(GetKey("Left")))
+                horizontal = -1;
+            else if (Input.GetKey(GetKey("Right")))
+                horizontal = 1;
 
             if (Input.GetKey(GetKey("Up")))
-            {
-                Direction = new Vector2(Direction.x, 1);
-            }
+                vertical = 1;
+            else if (Input.GetKey(GetKey("Down")))
+                vertical = -1;
 
-            if (Input.GetKey(GetKey("Down")))
-            {
-                Direction = new Vector2(Direction.x, -1);
-            }
-
-            if (Input.GetKey(GetKey("Left")) && Input.GetKey(GetKey("Right")))
-            {
-                Direction = new Vector2(0, Direction.y);
-            }
-
-            if (!Input.GetKey(GetKey("Left")) && !Input.GetKey(GetKey("Right")))
-            {
-                Direction = new Vector2(0, Direction.y);
-            }
-            
-            if (Input.GetKey(GetKey("Up")) && Input.GetKey(GetKey("Down")))
-            {
-                Direction = new Vector2(Direction.x, 0);
-            }
-            
-            if (!Input.GetKey(GetKey("Up")) && !Input.GetKey(GetKey("Down")))
-            {
-                Direction = new Vector2(Direction.x, 0);
-            }
+            Direction = new Vector2(horizontal, vertical);
         }
     }
 }
